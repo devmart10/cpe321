@@ -1,0 +1,11 @@
+How hard would it be for an adversary to solve the Diffie Hellman Problem (DHP) given these parameters? 
+It would not be hard as with p being 37, there are only 37 possible s given s = B^a mod P.
+
+What strategy might the adversary take?
+Adversary would only need to brute force the possible values of s and generate 37 keys, and one of the keys will decode the messages successfully.
+
+
+Would the same strategy used for the tiny parameters work here?
+No it would not.
+Why or why not?
+There would be 2.79E539 possible values for s, which would not be possible to brute force easily.
