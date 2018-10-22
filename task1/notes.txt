@@ -5,4 +5,12 @@ almost all of them. aaaa vs. aaab:
 85e90f7f0e71079806469831895acd620133bbe0937cc5403562968bbc7d8d1e
 about 137 bits
 
-truncating to 8 bits:
+truncating to 1 bytes (8 bits):
+(time python3 hash.py 1) &>> times.txt
+
+truncating to 8 bytes (64 bits):
+(time python3 hash.py 8) &>> times.txt
+
+What is the maximum number of files you would ever need to hash to find a collision on an n-bit digest? Given the Birthday Bound, what is the expected number of hashes before a collision on an n-bit digest? Is this what you observed? Given the data you’ve collected, speculate on how long it might take to find a collision on the full 256-bit digest.
+ 
+Given an 8-bit digest, would you be able to break the one-way property (i.e. can you find any pre-image)?  Do you think this would be easier or harder (i.e. more or less work) than finding a collision?  Why or why not?

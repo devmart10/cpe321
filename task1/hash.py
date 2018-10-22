@@ -1,7 +1,9 @@
 # hash.py
 import hashlib
+import sys
 
-def main():
+# user inputs part
+def main1():
     # user input strings
     input1 = input('String 1:')
     input2 = input('String 2:')
@@ -17,6 +19,23 @@ def main():
     # calc and show bit difference
     diff = calc_hamming(encrypted1, encrypted2)
     print('Different bits:', diff)
+
+# finding collision part
+def main2():
+    # arg for bytes (2, 3, 4, ..., 12)
+    num_bytes = int(sys.argv[1])
+    d = {}
+    a = 0
+    no_collision = True
+    while no_collision:
+        a_hash = hashlib.sha256(bytes(a)).hexdigest()[:num_bytes]
+        if a_hash in d:
+            no_collision = False
+            print(a, end='\t')
+        else:
+            d[a_hash] = a
+            # print(a_hash, ':', a)
+            a += 1
 
 # expects a string
 def encrypt(data_in):
@@ -40,4 +59,4 @@ def calc_hamming(a, b):
     return count
 
 if __name__ == '__main__':
-    main()
+    main2()
