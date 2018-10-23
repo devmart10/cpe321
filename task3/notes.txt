@@ -1,0 +1,7 @@
+Why were these attacks possible? What is necessary to prevent it?
+
+These attacks were possible because of the way modular math works. 
+By setting A and B to p, the function for creating the secret is 
+determined only by p, which Mallory has.
+
+To prevent this, ...?
