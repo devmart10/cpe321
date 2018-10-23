@@ -9,56 +9,78 @@ from Crypto.Util.Padding import pad
 from Crypto.Random import get_random_bytes
 from Crypto.Cipher import AES
 from Crypto.Util.Padding import unpad
-#Shared between Alice and Bob
-p = 37
-g = 5
 
-p = int("B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371", 16)
-g = int("A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5", 16)
+def main():
+	# shared between Alice and Bob
+	# p = 37
+	# g = 5
+	p = int("B10B8F96A080E01DDE92DE5EAE5D54EC52C99FBCFB06A3C69A6A9DCA52D23B616073E28675A23D189838EF1E2EE652C013ECB4AEA906112324975C3CD49B83BFACCBDD7D90C4BD7098488E9C219A73724EFFD6FAE5644738FAA31A4FF55BCCC0A151AF5F0DC8B4BD45BF37DF365C1A65E68CFDA76D4DA708DF1FB2BC2E4A4371", 16)
+	g = int("A4D1CBD5C3FD34126765A442EFB99905F8104DD258AC507FD6406CFF14266D31266FEA1E5C41564B777E690F5504F213160217B4B01B886A5E91547F9E2749F4D7FBD7D3B9A92EE1909D0D2263F80A76A6A24C087A091F531DBF0A0169B6A28AD662A4D18E73AFA32D779D5918D08BC8858F4DCEF97C2A24855E6EEB22B3B2E5", 16)
 
-a = 4
-#Alice computes and sends A over to Bob
-A = pow(g, a, p)
+	# Alice picks large prime and computes A
+	a = 7
+	A = pow(g, a, p)
 
+	# Bob picks large prime and computes B
+	b = 3
+	B = pow(g, b, p)
 
-b = 3
-#Bob computes and sends Alice B
-B = pow(g, b, p)
+	# Alice creates a key
+	k_Alice = create_key(B, a, p)
 
-#Alice
-s_Alice = pow(B, a, p)
+	# Bob creates a key
+	k_Bob = create_key(A, b, p)
 
-#Bob
-s_Bob = pow(A, b, p)
+	# should be the same key
+	assert k_Alice == k_Bob
 
-print(s_Alice)
-print(s_Bob)
-#print(bytes([s_Alice]))
-#print(bytes([s_Bob]))
+	# share an iv between the two people
+	shared_iv = os.urandom(16)
 
-h = SHA256.new()
-h.update(s_Alice.to_bytes(128, 'little'))
-kA = h.hexdigest()[:16]
-print(kA)
+	# message 0
+	m0 = b'Hi Bob!'
 
-h = SHA256.new()
-h.update(s_Bob.to_bytes(128, 'little'))
-kB = h.hexdigest()[:16]
-print(kB)
-print(type(kA))
-kA = bytes(kA, 'utf-8')
-kB = bytes(kB, 'utf-8')
+	# Alice encrypts a message for Bob
+	m0_encrypted = cbc_encypt(m0, k_Alice, shared_iv)
+	print('Alice sent:', m0)
 
-#AES CBS ENCODE with ALice's Key
-m0 = b'Hi Bob!'
-cipher = AES.new(kA, AES.MODE_CBC)
-ct_bytes = cipher.encrypt(pad(m0, AES.block_size))
-iv = cipher.iv
-ct = b64encode(ct_bytes)
-print(ct)
+	# Bob decrypts message from Alice
+	m0_decrypted = cbc_decrypt(m0_encrypted, k_Bob, shared_iv)
+	print("Bob received:", m0_decrypted)
 
-#AES CBC DECODE with Bob's key
-cipher = AES.new(kB, AES.MODE_CBC, iv)
-ct = b64decode(ct)
-pt = unpad(cipher.decrypt(ct), AES.block_size)
-print("The message was: ", pt)
+	# message 1
+	m1 = b'Hi Alice!'
+
+	# Bob encrypts a message for Alice
+	m1_encrypted = cbc_encypt(m1, k_Bob, shared_iv)
+	print('Bob sent:', m1)
+
+	# Alice decrypts message from Bob
+	m1_decrypted = cbc_decrypt(m1_encrypted, k_Alice, shared_iv)
+	print("Alice received:", m1_decrypted)
+
+def cbc_encypt(message, key, iv):
+	cipher = AES.new(key, AES.MODE_CBC, iv)
+	padded = pad(message, AES.block_size)
+	encrypted = cipher.encrypt(padded)
+	encoded = b64encode(encrypted)
+	return encoded
+
+def cbc_decrypt(encrypted, key, iv):
+	cipher = AES.new(key, AES.MODE_CBC, iv)
+	decoded = b64decode(encrypted)
+	decrypted = cipher.decrypt(decoded)
+	unpadded = unpad(decrypted, AES.block_size)
+	return unpadded
+
+# returns an encoded key
+def create_key(base, exp, mod):
+	secret = pow(base, exp, mod)
+	h = SHA256.new()
+	h.update(secret.to_bytes(128, 'little'))
+	h_key = h.hexdigest()[:16]
+	b_key = bytes(h_key, 'utf-8')
+	return b_key
+
+if __name__ == '__main__':
+	main()
