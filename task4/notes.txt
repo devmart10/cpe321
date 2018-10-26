@@ -1,0 +1,2 @@
+While it’s very common for many people to share an e (common values are 3,7, 216+1), it is very bad if two people share an RSA modulus n. Briefly describe why this is, and what the ramifications are.
+
