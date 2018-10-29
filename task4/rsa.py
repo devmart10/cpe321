@@ -2,76 +2,56 @@ import binascii
 from Crypto.PublicKey import RSA
 
 def main():
-	# # select two primes
-	# P = 53
-	# Q = 59
-
-	# # calc public key
-	# n = P * Q
-	# print('n:', n)
-
-	# # select an exponenent
-	# e = 3
-	# print('e:', e)
-
-	# # calc phi(n)
-	# phi_n = (P - 1) * (Q - 1)
-	# print('phi_n:', phi_n)
-
-	# # calc private key
-	# k = 2
-	# d = (k * phi_n + 1) // e
-	# print('d:', d)
-
+	# RSA settings
 	e = 65537
 	bits = 2048
+
+	# generate two large primes
 	key = RSA.generate(bits, e=e)
 	P = key.p
 	Q = key.q
 	n = P * Q
-	# d = key.d
 
+	# calc public key
 	phi_n = (P - 1) * (Q - 1)
-	inv = modinv(e, phi_n)
+	inv = multiplicative_inverse(e, phi_n)
 	d = pow(inv, 1, phi_n)
 
 	# encrypt message
 	m = 'hello world'
-	c = []
+	encrypted = []
 	for letter in m:
 		ct = pow(ord(letter), e, n)
-		c.append(ct)
-	print('c:', c)
+		encrypted.append(ct)
+	print('encrypted:', encrypted)
+
+	# mallory plaintext attack
+	plaintext = '2'
+	cA = pow(ord(plaintext), e, n)
+	cB = [cA * c for c in encrypted]
 
 	decrypted = []
-	for ct in c:
+	for ct in encrypted:
 		dt = chr(pow(ct, d, n))
 		decrypted.append(dt)
 	print('decrypted:', decrypted)
 
-# TODO
+
+"""
+Tried to implement ourselves, but ran out of time and decided to work on the other parts of the lab.
+Citation: https://stackoverflow.com/questions/4798654/modular-multiplicative-inverse-function-in-python
+"""
 def gcd(a, b):
-	pass
+	if a == 0:
+		return (b, 0, 1)
+	else:
+		g, y, x = gcd(b % a, a)
+		return (g, x - (b // a) * y, y)
 
-# TODO
-def multiplicative_inverse(e, phi):
-	pass
-
-# """
-def egcd(a, b):
-    if a == 0:
-        return (b, 0, 1)
-    else:
-        g, y, x = egcd(b % a, a)
-        return (g, x - (b // a) * y, y)
-
-def modinv(a, m):
-    g, x, y = egcd(a, m)
-    if g != 1:
-        raise Exception('modular inverse does not exist')
-    else:
-        return x % m
-# """
+def multiplicative_inverse(a, m):
+    g, x, y = gcd(a, m)
+    return x % m
+# end citation
 
 if __name__ == '__main__':
 	main()
